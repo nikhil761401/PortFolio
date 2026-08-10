@@ -9,8 +9,8 @@ export default function Footer() {
           © {new Date().getFullYear()} {siteConfig.name}. Built with Next.js, deployed on GitHub Pages.
         </p>
         <div className="flex gap-4">
-          <a href={siteConfig.github} className="hover:text-paper">GitHub</a>
-          <a href={siteConfig.linkedin} className="hover:text-paper">LinkedIn</a>
+          <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" className="hover:text-paper">GitHub</a>
+          <a href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-paper">LinkedIn</a>
           <a href={`mailto:${siteConfig.email}`} className="hover:text-paper">Email</a>
         </div>
       </Container>

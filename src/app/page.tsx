@@ -330,6 +330,8 @@ export default function HomePage() {
 
               <a
                 href={siteConfig.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group flex flex-col gap-3 rounded-lg border border-white/10 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:bg-white/[0.03]"
               >
                 <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="currentColor" aria-hidden="true">
@@ -341,6 +343,8 @@ export default function HomePage() {
 
               <a
                 href={siteConfig.github}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group flex flex-col gap-3 rounded-lg border border-white/10 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:bg-white/[0.03]"
               >
                 <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="currentColor" aria-hidden="true">
