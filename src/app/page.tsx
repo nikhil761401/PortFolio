@@ -1,8 +1,26 @@
+import type { CSSProperties } from "react";
 import Container from "@/components/Container";
+import SectionHeader from "@/components/SectionHeader";
 import ProjectCard from "@/components/ProjectCard";
 import FlowHorizontal from "@/components/FlowHorizontal";
 import Reveal from "@/components/Reveal";
-import CopyEmailButton from "@/components/CopyEmailButton";
+import BouncePad from "@/components/BouncePad";
+import Testimonials from "@/components/Testimonials";
+import ContactForm from "@/components/ContactForm";
+import {
+  IconMail,
+  IconPhone,
+  IconLinkedIn,
+  IconGitHub,
+  IconGradCap,
+  IconPin,
+  IconCalendar,
+  IconFlag,
+  IconCheck,
+  IconBriefcase,
+  IconCode,
+} from "@/components/icons";
+import HeroBadges from "@/components/HeroBadges";
 import {
   profile,
   experience,
@@ -11,6 +29,8 @@ import {
   education,
   capabilities,
   researchFocus,
+  keyHighlights,
+  testimonials,
 } from "@/lib/data";
 import { siteConfig, withBasePath } from "@/lib/site";
 
@@ -18,6 +38,54 @@ const flagship = projects.find((p) => p.flagship);
 const otherProjects = projects.filter((p) => !p.flagship);
 
 const experienceRange = ["Python Development", "AI/ML Research", "AI Product Engineering"];
+
+// profile.headline is "Role | tag | tag" — split once here so the hero can
+// give the role its own visual weight, without editing the underlying fact.
+const [heroRole] = profile.headline.split(" | ");
+
+// Status pill shows current role · organization, the same real fact already
+// listed as the first entry in experience — not a new claim.
+const heroStatus = `${experience[0].role} · ${experience[0].org}`;
+
+// Alternating section background band — light, dark blue, light, dark blue
+// as you scroll, instead of one flat shade for every section. This just
+// overrides the local --ink-rgb custom property to the deeper "alt" shade
+// defined in globals.css; every Tailwind bg-ink usage nested inside that
+// section (including things like the "What I build" grid cells) picks it up
+// automatically through normal CSS variable cascade, no per-component edits
+// needed.
+const darkBand = { "--ink-rgb": "var(--ink-alt-rgb)" } as CSSProperties;
+
+// Focus-area tags for the hero, in place of small numeric stat boxes — the
+// same specialization terms already used verbatim in profile.heroSummary,
+// just surfaced as scannable tags instead of buried in a sentence.
+const heroFocusAreas = ["Generative AI", "LLM Applications", "RAG", "Agentic AI"];
+
+// Shared color-tag palette — reused for skill pills and research interest
+// tags so different kinds of items get distinct, consistent colors instead
+// of one flat tone everywhere.
+const tagColor: Record<string, { bg: string; text: string }> = {
+  accent: { bg: "bg-accent/10", text: "text-accent" },
+  mint: { bg: "bg-mint/10", text: "text-mint" },
+  accent2: { bg: "bg-accent2/10", text: "text-accent2" },
+  gold: { bg: "bg-gold/10", text: "text-gold" },
+};
+const tagColorCycle = ["accent", "mint", "accent2", "gold"] as const;
+
+// Each skill category gets its own consistent color across all its items —
+// a different color per "kind of skill", not a random per-item cycle.
+const skillGroupColor = ["accent", "mint", "accent2", "gold"] as const;
+
+// Per-category card accents for Technical Capabilities — same card shell as
+// ProjectCard (Selected Work), just with the top bar and hover border tinted
+// to match each category's own color instead of always the blue-violet
+// gradient used for projects.
+const skillCardColor: Record<string, { bar: string; hoverBorder: string }> = {
+  accent: { bar: "bg-accent", hoverBorder: "hover:border-accent/40" },
+  mint: { bar: "bg-mint", hoverBorder: "hover:border-mint/40" },
+  accent2: { bar: "bg-accent2", hoverBorder: "hover:border-accent2/40" },
+  gold: { bar: "bg-gold", hoverBorder: "hover:border-gold/40" },
+};
 
 // Small line icons for the "What I build" cards — hand-drawn simple shapes
 // (no icon library dependency), purely decorative so each card has a visual
@@ -52,61 +120,105 @@ const buildIcons: Record<string, React.ReactNode> = {
   ),
 };
 
-// Shared type scale so every major section heading reads with the same
-// weight and hierarchy — one consistent voice across the page instead of
-// each section improvising its own size.
-const sectionHeading = "text-3xl font-bold tracking-tight text-paper sm:text-4xl";
-const sectionIntro = "text-base leading-relaxed text-paper/65 sm:text-lg";
-
-// Hairline dividers for the 2x2 Technical Capabilities spec-sheet grid.
-// Mobile stacks all four in one column (each after the first gets a top
-// rule); desktop arranges 2x2, so column 2 needs a left rule instead of a
-// top rule on its first row, and row 2 keeps its top rule in both layouts.
-const skillDividers = [
-  "",
-  "border-t border-white/10 pt-10 lg:border-t-0 lg:border-l lg:border-white/10 lg:pl-16 lg:pt-0",
-  "border-t border-white/10 pt-10",
-  "border-t border-white/10 pt-10 lg:border-l lg:border-white/10 lg:pl-16",
+// Hero photo badges — exactly two fixed cards (top-right, bottom-left),
+// matching the site's original static badge layout. Each card's own
+// position never changes; only its content quietly cycles. Top-right mixes
+// roles and skills (professional identity), bottom-left cycles projects —
+// both pulled directly from the real experience/skillGroups/projects data.
+// Each slot's first item is deliberately the strongest one — current role,
+// flagship project — since that's what a first-time visitor sees before
+// anything has had a chance to swap.
+const heroBadgeSlots = [
+  {
+    position: "-right-2 top-6 sm:right-0 sm:top-10",
+    items: [
+      { kind: "Role", label: experience[0].role, icon: <IconBriefcase className="h-3.5 w-3.5" />, colorClass: "bg-mint/15 text-mint" },
+      { kind: "Skill", label: "LangChain", icon: <IconCode className="h-3.5 w-3.5" />, colorClass: "bg-accent/15 text-accent" },
+      { kind: "Role", label: experience[1].role, icon: <IconBriefcase className="h-3.5 w-3.5" />, colorClass: "bg-mint/15 text-mint" },
+      { kind: "Skill", label: "RAG", icon: <IconCode className="h-3.5 w-3.5" />, colorClass: "bg-accent/15 text-accent" },
+      { kind: "Skill", label: "Python", icon: <IconCode className="h-3.5 w-3.5" />, colorClass: "bg-accent/15 text-accent" },
+    ],
+  },
+  {
+    position: "-left-2 bottom-8 sm:left-0 sm:bottom-12",
+    items: projects.map((p) => ({
+      kind: "Project",
+      label: p.name,
+      icon: <IconFlag className="h-3.5 w-3.5" />,
+      colorClass: "bg-accent2/15 text-accent2",
+    })),
+  },
 ];
 
 export default function HomePage() {
   return (
     <>
       {/* HERO */}
-      <section id="top" className="scroll-mt-20 py-16 sm:py-24">
+      <section id="top" className="relative scroll-mt-20 overflow-hidden pb-16 pt-8 sm:pb-20 sm:pt-12">
+        <div className="hero-wash" aria-hidden="true" />
         <Container wide>
           <div className="grid items-center gap-14 lg:grid-cols-[1.15fr_1fr] lg:gap-20">
             <div>
-              <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-accent/30 bg-accent/10 px-5 py-2.5">
-                <span className="status-dot h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
-                <span className="font-mono text-base font-medium tracking-wide text-accent sm:text-lg">
-                  Hi, I&apos;m {profile.name}
-                </span>
-                <span className="inline-flex items-end gap-1" aria-hidden="true">
-                  <span className="dot-typing" style={{ animationDelay: "0ms" }} />
-                  <span className="dot-typing" style={{ animationDelay: "200ms" }} />
-                  <span className="dot-typing" style={{ animationDelay: "400ms" }} />
+              <div className="mb-6 inline-flex items-center gap-3 rounded-full border border-hairline/10 bg-surface/[0.05] px-5 py-2.5">
+                <span className="status-dot h-2.5 w-2.5 shrink-0 rounded-full bg-mint" aria-hidden="true" />
+                <span className="text-base font-medium tracking-wide text-paper sm:text-lg">
+                  {heroStatus}
                 </span>
               </div>
-              <h1 className="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-paper sm:text-5xl">
-                {profile.headline}
-              </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-relaxed text-paper/70">
-                {profile.bio}
+
+              <p className="gradient-text text-6xl font-bold leading-none tracking-tight sm:text-7xl lg:text-8xl">
+                {profile.name}
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <a
-                  href="#work"
-                  className="rounded-md bg-accent px-6 py-3 text-base font-medium text-white transition-colors hover:bg-accent/90"
-                >
-                  See my work
-                </a>
-                <a
-                  href="#contact"
-                  className="rounded-md border border-white/15 px-6 py-3 text-base font-medium text-paper transition-colors hover:border-white/30"
-                >
-                  Get in touch
-                </a>
+              <h1 className="mt-4 max-w-xl text-3xl font-bold leading-tight tracking-tight text-paper sm:text-4xl">
+                {heroRole}
+              </h1>
+              <p className="mt-4 max-w-xl text-lg leading-relaxed text-paper/70">{profile.heroSummary}</p>
+
+              <div className="mt-8 flex w-fit flex-col gap-8">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap gap-4">
+                    <a
+                      href={withBasePath("/nikhil-resume.pdf")}
+                      download
+                      className="inline-flex items-center gap-2 rounded-2xl gradient-bg px-8 py-4 text-lg font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v11m0 0 4-4m-4 4-4-4M4 19.5h16" />
+                      </svg>
+                      Download Resume
+                    </a>
+                    <a
+                      href={siteConfig.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-2xl bg-surface/[0.08] px-8 py-4 text-lg font-semibold text-paper transition-colors hover:bg-surface/[0.14]"
+                    >
+                      <IconLinkedIn className="h-5 w-5 text-accent" />
+                      LinkedIn
+                    </a>
+                  </div>
+                  <a
+                    href="#contact"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl border border-hairline/15 px-8 py-4 text-lg font-semibold text-paper transition-colors hover:border-hairline/30"
+                  >
+                    <IconMail className="h-5 w-5" />
+                    Connect with Me
+                  </a>
+                </div>
+
+                <div className="w-full rounded-2xl border border-hairline/10 bg-surface/[0.05] shadow-sm px-5 py-4">
+                  <p className="mb-3 font-mono text-xs uppercase tracking-wider text-paper/50">Focus Areas</p>
+                  <div className="flex flex-wrap gap-2">
+                    {heroFocusAreas.map((area, i) => {
+                      const c = tagColor[tagColorCycle[i % tagColorCycle.length]];
+                      return (
+                        <span key={area} className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${c.bg} ${c.text}`}>
+                          {area}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -114,9 +226,13 @@ export default function HomePage() {
               <div className="relative shrink-0">
                 <div
                   aria-hidden="true"
+                  className="absolute -inset-10 rounded-full border border-dashed border-accent/20"
+                />
+                <div
+                  aria-hidden="true"
                   className="avatar-glow absolute -inset-5 rounded-full bg-accent/20 blur-xl"
                 />
-                <div className="avatar-ring relative h-64 w-64 overflow-hidden rounded-full border-2 border-accent/40 sm:h-80 sm:w-80 lg:h-[28rem] lg:w-[28rem]">
+                <div className="avatar-ring relative h-80 w-80 overflow-hidden rounded-full border-2 border-accent/40 sm:h-[26rem] sm:w-[26rem] lg:h-[32rem] lg:w-[32rem]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={withBasePath("/nikhil-profile.png")}
@@ -124,21 +240,71 @@ export default function HomePage() {
                     className="h-full w-full object-cover"
                   />
                 </div>
+
+                <HeroBadges slots={heroBadgeSlots} />
               </div>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* SELECTED WORK */}
-      <section id="work" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-20">
+      {/* ABOUT */}
+      <section id="about" className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20">
+        <div className="section-wash-1" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Selected work</h2>
-            <p className={`mt-3 mb-10 max-w-2xl ${sectionIntro}`}>
-              Three projects, three dimensions of engineering ability: product
-              engineering, retrieval engineering, and agentic systems.
-            </p>
+            <SectionHeader
+              title="About Me"
+              description="AI/ML engineer and researcher dedicated to turning research into real, usable products."
+            />
+
+            <div className="mt-14 grid gap-6 text-base leading-relaxed text-paper/78 sm:text-lg lg:grid-cols-2 lg:gap-x-12">
+              <p>{profile.bio}</p>
+              <p>
+                Currently working as an {experience[0].role} at {experience[0].org},
+                after previously working as a {experience[1].role} at{" "}
+                {experience[1].org}. Holds an {education.degree} from{" "}
+                {education.org} ({education.year}) — {education.description.toLowerCase()}
+              </p>
+            </div>
+
+            <div className="group relative mt-10 overflow-hidden rounded-2xl border border-hairline/10 bg-surface/[0.03] p-6 shadow-sm transition-all duration-300 hover:border-mint/30 hover:shadow-md sm:p-8">
+              <span aria-hidden="true" className="gradient-bg absolute inset-x-0 top-0 h-1" />
+              <p className="mb-6 flex items-center gap-3 text-base font-semibold text-paper">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-mint/15 text-mint transition-transform duration-300 group-hover:scale-105">
+                  <IconCheck className="h-4 w-4" />
+                </span>
+                Key Highlights
+              </p>
+              <ul className="grid gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+                {keyHighlights.map((h) => (
+                  <li key={h} className="flex items-start gap-3 text-base text-paper/78">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-mint/15 text-mint">
+                      <IconCheck className="h-3.5 w-3.5" />
+                    </span>
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Container>
+        </Reveal>
+      </section>
+
+      {/* SELECTED WORK */}
+      <section
+        id="work"
+        className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20"
+        style={darkBand}
+      >
+        <div className="section-wash-2" aria-hidden="true" />
+        <Reveal>
+          <Container wide>
+            <SectionHeader
+              title="Selected work"
+              description="Three projects, three dimensions of engineering ability: product engineering, retrieval engineering, and agentic systems."
+              className="mb-12"
+            />
 
             {flagship && (
               <div className="mb-6">
@@ -155,61 +321,139 @@ export default function HomePage() {
         </Reveal>
       </section>
 
-      {/* WHAT I BUILD */}
-      <section className="border-t border-white/10 py-16 sm:py-20">
+      {/* WHAT I BUILD — reframed as a process, not a spec sheet: idea →
+          intelligent product → AI system → engineered software → grounded
+          in research, each stage numbered and colored using the same
+          accent/mint/accent2/gold cycle as Technical Capabilities, connected
+          by arrows so it reads as one continuous line of work instead of
+          four disconnected facts. It closes with a live playable demo (the
+          game that used to sit at the very bottom of the page) explicitly
+          tied back to all four stages, so a visitor doesn't just read the
+          claim, they get to test it. */}
+      <section className="relative overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20">
+        <div className="section-wash-3" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>What I build</h2>
-            <div className="mt-10 grid gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-2">
-              {capabilities.map((c) => (
-                <div
-                  key={c.title}
-                  className="group relative z-0 bg-ink p-8 transition-all duration-300 hover:z-10 hover:-translate-y-1 hover:bg-white/[0.04] hover:shadow-[0_0_0_1px_rgba(91,140,255,0.4)] sm:p-10"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors duration-300 group-hover:border-accent/60">
-                    <span className="h-5 w-5">{buildIcons[c.title]}</span>
+            <SectionHeader
+              title="What I build"
+              description="Not four separate skills — one continuous line of work, from a raw idea to something you can actually put in front of people. Try the last part yourself, below."
+            />
+
+            <div className="mt-10 flex flex-col gap-3 lg:flex-row lg:items-stretch lg:gap-0">
+              {capabilities.map((c, i) => {
+                const colorKey = skillGroupColor[i % skillGroupColor.length];
+                const color = tagColor[colorKey];
+                const cardColor = skillCardColor[colorKey];
+                return (
+                  <div key={c.title} className="flex flex-col gap-3 lg:contents">
+                    <div
+                      className={`group relative flex-1 overflow-hidden rounded-2xl border border-hairline/10 bg-surface/[0.02] p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${cardColor.hoverBorder}`}
+                    >
+                      <span aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 ${cardColor.bar}`} />
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-mono text-xs text-paper/35">{String(i + 1).padStart(2, "0")}</span>
+                        <div
+                          className={`flex h-9 w-9 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105 ${color.bg} ${color.text}`}
+                        >
+                          <span className="h-4 w-4">{buildIcons[c.title]}</span>
+                        </div>
+                      </div>
+                      <h3 className="mt-4 text-base font-bold text-paper">{c.title}</h3>
+                      <p className="mt-1.5 text-sm leading-relaxed text-paper/65">{c.description}</p>
+                    </div>
+
+                    {i < capabilities.length - 1 && (
+                      <span aria-hidden="true" className="flex items-center justify-center lg:px-2">
+                        <span className="block h-6 w-px flow-connector lg:h-px lg:w-6" />
+                      </span>
+                    )}
                   </div>
-                  <h3 className="mt-5 font-mono text-sm uppercase tracking-wider text-accent">
-                    {c.title}
-                  </h3>
-                  <p className="mt-3 text-base leading-relaxed text-paper/70">{c.description}</p>
+                );
+              })}
+            </div>
+
+            <div id="play" className="mt-8 scroll-mt-24 overflow-hidden rounded-2xl border border-accent/25 bg-surface/[0.03] shadow-sm">
+              <div className="p-6 sm:p-8">
+                <p className="font-mono text-[11px] uppercase tracking-wider text-accent">See it in action</p>
+                <h3 className="mt-2 text-xl font-bold text-paper sm:text-2xl">Experience it yourself</h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-paper/65">
+                  An AI opponent reads the board and predicts what happens next, built on the same thinking behind
+                  the work above. Play it yourself, or let the AI take over.
+                </p>
+
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {capabilities.map((c, i) => {
+                    const colorKey = skillGroupColor[i % skillGroupColor.length];
+                    const color = tagColor[colorKey];
+                    return (
+                      <span
+                        key={c.title}
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${color.bg} ${color.text}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+                        {c.title}
+                      </span>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
+
+              <div className="border-t border-hairline/10 bg-ink/40 p-6 sm:p-8">
+                <BouncePad />
+              </div>
             </div>
           </Container>
         </Reveal>
       </section>
 
       {/* EXPERIENCE */}
-      <section id="experience" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-20">
+      <section
+        id="experience"
+        className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20"
+        style={darkBand}
+      >
+        <div className="section-wash-4" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Experience</h2>
+            <SectionHeader
+              title="Experience"
+              description="From backend engineering to applied AI research — a progression toward building and studying the systems that power intelligent products."
+            />
 
-            <div className="mt-10 mb-10 rounded-lg border border-white/10 bg-white/[0.02] px-6 py-6 sm:px-8">
-              <p className="mb-5 font-mono text-[11px] uppercase tracking-wider text-paper/50">
+            <div className="mt-12 mb-10 rounded-2xl border border-hairline/10 bg-surface/[0.02] shadow-sm px-6 py-6 sm:px-8">
+              <p className="mb-5 font-mono text-[11px] uppercase tracking-wider text-paper/60">
                 Range of engineering work
               </p>
               <FlowHorizontal steps={experienceRange} />
             </div>
 
-            <ul className="space-y-5">
+            <ul className="space-y-6">
               {experience.map((e) => (
                 <li
                   key={e.role + e.org}
-                  className="group rounded-lg border-l-2 border-white/15 py-2 pl-6 pr-4 transition-colors duration-300 hover:border-accent hover:bg-white/[0.02]"
+                  className="group relative rounded-2xl border border-hairline/10 bg-surface/[0.02] shadow-sm p-6 pl-8 transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/30 sm:p-8 sm:pl-10"
                 >
+                  <span
+                    className="absolute left-0 top-8 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent ring-4 ring-ink"
+                    aria-hidden="true"
+                  />
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="text-lg font-semibold text-paper">
                       {e.role} · {e.org}
                     </h3>
-                    <span className="text-sm text-paper/60">{e.period}</span>
                   </div>
-                  <p className="mt-1 text-sm text-paper/50">{e.location}</p>
-                  <ul className="mt-4 space-y-2 text-base leading-relaxed text-paper/70">
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-hairline/10 px-2.5 py-0.5 text-xs text-paper/70">
+                      {e.period}
+                    </span>
+                    <span className="rounded-full border border-hairline/10 px-2.5 py-0.5 text-xs text-paper/70">
+                      {e.location}
+                    </span>
+                  </div>
+                  <ul className="mt-4 space-y-2 text-base leading-relaxed text-paper/78">
                     {e.bullets.map((b) => (
                       <li key={b} className="flex gap-3">
-                        <span className="mt-[11px] h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                        <IconCheck className="mt-[3px] h-4 w-4 shrink-0 text-accent" />
                         <span>{b}</span>
                       </li>
                     ))}
@@ -221,19 +465,33 @@ export default function HomePage() {
         </Reveal>
       </section>
 
-      {/* RESEARCH */}
-      <section id="research" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-20">
+      {/* RESEARCH — pipeline breadcrumb as connected pills (not plain
+          arrow-joined text), a labeled "Research interests" tag cloud, and
+          a labeled pipeline card matching the same card treatment used for
+          Experience's "Range of engineering work", so the section reads as
+          a deliberate sequence: focus → interests → process. */}
+      <section id="research" className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20">
+        <div className="section-wash-1" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Research focus</h2>
-            <p className="mt-4 max-w-2xl font-mono text-base text-accent">
-              {researchFocus.pipeline.join(" → ")}
-            </p>
-            <p className={`mt-4 mb-10 max-w-2xl ${sectionIntro}`}>
-              {researchFocus.description}
-            </p>
+            <SectionHeader title="Research focus" description={researchFocus.description} />
 
-            <div className="overflow-x-auto rounded-lg border border-white/10 bg-white/[0.02] px-6 py-7 sm:px-10">
+            <p className="mb-4 mt-10 text-center font-mono text-[11px] uppercase tracking-wider text-paper/55">
+              Research interests
+            </p>
+            <div className="mb-10 flex flex-wrap justify-center gap-2">
+              {researchFocus.interests.map((tag, i) => {
+                const c = tagColor[tagColorCycle[i % tagColorCycle.length]];
+                return (
+                  <span key={tag} className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${c.bg} ${c.text}`}>
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-hairline/10 bg-surface/[0.02] shadow-sm px-6 py-7 sm:px-10">
+              <p className="mb-5 font-mono text-[11px] uppercase tracking-wider text-paper/60">Research pipeline</p>
               <FlowHorizontal steps={researchFocus.stages} />
             </div>
           </Container>
@@ -241,147 +499,240 @@ export default function HomePage() {
       </section>
 
       {/* TECHNICAL CAPABILITIES */}
-      <section id="skills" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-20">
+      <section
+        id="skills"
+        className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20"
+        style={darkBand}
+      >
+        <div className="section-wash-2" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Technical capabilities</h2>
-            <p className={`mt-3 max-w-xl ${sectionIntro}`}>
-              Systems, frameworks, and engineering foundations I use to build
-              AI-powered products.
-            </p>
+            <SectionHeader
+              title="Technical capabilities"
+              description="Systems, frameworks, and engineering foundations I use to build AI-powered products."
+            />
 
             {/*
-              A spec-sheet grid, not cards: each category gets equal width,
-              equal padding, and equal heading hierarchy, separated by hairline
-              rules rather than boxes. AI & LLM naturally has more technologies
-              than Machine Learning — instead of forcing equal box heights (or
-              artificially trimming content), the list simply runs longer as
-              plain, dot-separated text, the same way a technical spec would
-              present it.
+              Each category gets its own full-width horizontal card — same
+              shell as the Selected Work project cards (rounded border, soft
+              surface tint, colored top bar, lift-on-hover), stacked one per
+              row. The header pill sizes to its own text (never wraps, so a
+              longer title like "Software Engineering" can't balloon into a
+              two-line block) and sits inline with the skill tags on the same
+              row; the description drops below as one quiet caption line
+              instead of a second competing block, which keeps every card's
+              rhythm even regardless of title length. Each skill cycles its
+              own color independently of the category color, and no
+              proficiency percentages (or skill counts) are shown — there's
+              no honest number to put on an individual skill, so we don't
+              invent one.
             */}
-            <div className="mt-12 grid grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-2 lg:gap-x-24 lg:gap-y-16">
-              {skillGroups.map((group, i) => (
-                <div key={group.title} className={`group ${skillDividers[i]}`}>
-                  <div className="flex items-baseline gap-3">
-                    <span className="font-mono text-sm text-accent/70 transition-colors duration-300 group-hover:text-accent">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="text-xl font-semibold text-paper transition-colors duration-300 group-hover:text-white sm:text-2xl">
-                      {group.title}
-                    </h3>
+            <div className="mt-12 space-y-6">
+              {skillGroups.map((group, i) => {
+                const colorKey = skillGroupColor[i % skillGroupColor.length];
+                const headerColor = tagColor[colorKey];
+                const cardColor = skillCardColor[colorKey];
+                return (
+                  <div
+                    key={group.title}
+                    className={`group relative overflow-hidden rounded-2xl border border-hairline/10 bg-surface/[0.02] p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md sm:p-8 ${cardColor.hoverBorder}`}
+                  >
+                    <span aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 ${cardColor.bar}`} />
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span
+                        className={`inline-flex flex-none items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-lg font-bold ${headerColor.bg} ${headerColor.text}`}
+                      >
+                        <span className="font-mono text-sm opacity-70">{String(i + 1).padStart(2, "0")}</span>
+                        {group.title}
+                      </span>
+                      <ul className="flex flex-1 flex-wrap gap-2.5">
+                        {group.items.map((item, j) => {
+                          const c = tagColor[tagColorCycle[j % tagColorCycle.length]];
+                          return (
+                            <li
+                              key={item}
+                              className={`rounded-full px-4 py-2 text-sm font-medium ${c.bg} ${c.text}`}
+                            >
+                              {item}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                    <p className="mt-5 text-sm text-paper/50">{group.description}</p>
                   </div>
-                  <div className="mt-4 h-px w-12 bg-white/15 transition-all duration-300 group-hover:w-20 group-hover:bg-accent/60" />
-                  <p className="mt-4 max-w-md text-base text-paper/60">{group.description}</p>
-                  <p className="mt-5 text-base leading-[1.9] text-paper/80 sm:text-lg">
-                    {group.items.join(" · ")}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </Container>
         </Reveal>
       </section>
 
       {/* EDUCATION */}
-      <section id="education" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-20">
+      <section id="education" className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-20">
+        <div className="section-wash-3" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Education</h2>
-            <div className="group mt-10 flex flex-col gap-6 rounded-lg border border-white/10 bg-white/[0.02] p-8 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-white/[0.04] sm:flex-row sm:items-center sm:p-10">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-accent/30 bg-accent/10 text-accent transition-colors duration-300 group-hover:border-accent/60">
-                <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.5 9 12 4.5 21.5 9 12 13.5 2.5 9Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 11v5c0 1.4 2.5 2.75 5.5 2.75s5.5-1.35 5.5-2.75v-5" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.5 9v6" />
-                </svg>
+            <SectionHeader
+              title="Education"
+              description="The formal grounding behind the engineering and research work above."
+            />
+            <div className="group relative mx-auto mt-10 max-w-3xl overflow-hidden rounded-3xl border border-hairline/10 bg-surface/[0.02] shadow-sm p-8 transition-all duration-300 hover:-translate-y-1 hover:border-mint/40 hover:bg-surface/[0.04] sm:p-10">
+              <div className="grid gap-6 sm:grid-cols-[auto_1fr] sm:items-start sm:gap-8">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl gradient-bg text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
+                  <IconGradCap />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-accent sm:text-3xl">{education.degree}</h3>
+                  <p className="mt-2 text-lg font-semibold text-mint">{education.org}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-paper/60">
+                    <span className="flex items-center gap-2">
+                      <IconPin className="h-4 w-4 shrink-0" />
+                      {education.location}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <IconCalendar className="h-4 w-4 shrink-0" />
+                      {education.year}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-semibold text-paper sm:text-2xl">{education.degree}</h3>
-                <p className="mt-1.5 text-base text-paper/70">{education.org}</p>
-                <p className="mt-1 text-sm text-paper/50">{education.year}</p>
+              <div className="mt-6 border-t border-hairline/10 pt-6">
+                <p className="text-base leading-relaxed text-paper/70">{education.description}</p>
               </div>
             </div>
           </Container>
         </Reveal>
       </section>
 
-      {/* CONTACT */}
-      <section id="contact" className="scroll-mt-20 border-t border-white/10 py-16 sm:py-24">
+      {/* TESTIMONIALS — kept short (compact padding, clamped quote behind a
+          Read more toggle) so it doesn't read as a big empty block before
+          Contact; the card runs long horizontally rather than a centered
+          narrow box. */}
+      <section id="testimonials" className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-10 sm:py-14" style={darkBand}>
+        <div className="section-wash-1" aria-hidden="true" />
         <Reveal>
           <Container wide>
-            <h2 className={sectionHeading}>Let&apos;s build something intelligent.</h2>
-            <p className={`mt-4 max-w-xl ${sectionIntro}`}>
-              Open to AI/ML engineering opportunities, research collaboration, and
-              ambitious product ideas.
-            </p>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <a
-                href={`mailto:${siteConfig.email}`}
-                className="group flex flex-col gap-3 rounded-lg border border-white/10 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:bg-white/[0.03]"
-              >
-                <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 6.75A2.25 2.25 0 0 1 5.25 4.5h13.5A2.25 2.25 0 0 1 21 6.75v10.5A2.25 2.25 0 0 1 18.75 19.5H5.25A2.25 2.25 0 0 1 3 17.25V6.75Z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.5 7 8.5 6 8.5-6" />
-                </svg>
-                <span className="text-base font-medium text-paper group-hover:text-accent">Email</span>
-                <span className="text-sm text-paper/60">{siteConfig.email}</span>
-              </a>
-
-              <a
-                href={siteConfig.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col gap-3 rounded-lg border border-white/10 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:bg-white/[0.03]"
-              >
-                <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="currentColor" aria-hidden="true">
-                  <path d="M4.98 3.5C4.98 4.88 3.9 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.24 8.24h4.5V23h-4.5V8.24ZM8.5 8.24h4.3v2.01h.06c.6-1.14 2.06-2.34 4.24-2.34 4.53 0 5.37 2.98 5.37 6.86V23h-4.5v-6.98c0-1.66-.03-3.8-2.32-3.8-2.32 0-2.68 1.81-2.68 3.68V23h-4.5V8.24Z" />
-                </svg>
-                <span className="text-base font-medium text-paper group-hover:text-accent">LinkedIn</span>
-                <span className="text-sm text-paper/60">linkedin.com/in/nikhil761401</span>
-              </a>
-
-              <a
-                href={siteConfig.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col gap-3 rounded-lg border border-white/10 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:bg-white/[0.03]"
-              >
-                <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-2.15c-3.2.7-3.87-1.36-3.87-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.7 5.38-5.26 5.67.42.36.78 1.07.78 2.16v3.2c0 .3.21.66.79.55A10.51 10.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-                </svg>
-                <span className="text-base font-medium text-paper group-hover:text-accent">GitHub</span>
-                <span className="text-sm text-paper/60">github.com/nikhil761401</span>
-              </a>
-            </div>
-
-            <p className="mt-8 text-sm text-paper/50">
-              Also reachable by phone:{" "}
-              <a
-                href={`tel:${siteConfig.phone.replace(/[^+\d]/g, "")}`}
-                className="text-paper/70 hover:text-accent"
-              >
-                {siteConfig.phone}
-              </a>
-            </p>
-          </Container>
-        </Reveal>
-      </section>
-
-      {/* END OF PAGE — a small, genuinely useful interactive moment for
-          anyone who scrolls all the way down, rather than just a hard stop. */}
-      <section className="border-t border-white/10 py-14">
-        <Reveal>
-          <Container wide>
-            <div className="flex flex-col items-center gap-4 text-center">
-              <p className="font-mono text-sm text-paper/50">
-                You made it to the end — thanks for scrolling.
-              </p>
-              <CopyEmailButton email={siteConfig.email} />
+            <SectionHeader title="What people say" description="A recommendation from a colleague I worked with." />
+            <div className="mt-8">
+              <Testimonials items={testimonials} />
             </div>
           </Container>
         </Reveal>
       </section>
+
+      {/* CONTACT — light band, following the alternating rhythm above
+          (Testimonials right before it is dark) rather than a forced
+          override. */}
+      <section id="contact" className="relative scroll-mt-20 overflow-hidden border-t border-hairline/10 bg-ink py-16 sm:py-24">
+        <div className="section-wash-4" aria-hidden="true" />
+        <Reveal>
+          <Container wide>
+            <SectionHeader
+              title="Let's build something intelligent."
+              description="Open to AI/ML engineering opportunities, research collaboration, and ambitious product ideas."
+            />
+
+            <div className="mt-12 grid gap-8 lg:grid-cols-2">
+              <div className="group relative overflow-hidden rounded-2xl border border-accent/20 bg-surface/[0.03] p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_0_36px_rgba(59,130,246,0.16)] sm:p-8">
+                <span aria-hidden="true" className="gradient-bg absolute inset-x-0 top-0 h-1" />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent2/10 blur-3xl transition-opacity duration-300 group-hover:opacity-80"
+                />
+
+                <div className="relative flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="gradient-text text-xl font-bold">Contact Information</h3>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-mint/30 bg-mint/10 px-3 py-1 text-[11px] font-semibold text-mint">
+                    <span className="status-dot h-1.5 w-1.5 shrink-0 rounded-full bg-mint" aria-hidden="true" />
+                    Open to opportunities
+                  </span>
+                </div>
+
+                <ul className="relative mt-8 space-y-5">
+                  <li className="flex items-center gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent shadow-[0_0_0_1px_rgb(var(--accent-rgb)/0.3)] transition-all duration-300 group-hover:shadow-[0_0_18px_rgba(59,130,246,0.55)]">
+                      <IconMail className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-xs uppercase tracking-wide text-paper/50">Email</span>
+                      <a href={`mailto:${siteConfig.email}`} className="text-sm font-medium text-paper transition-colors hover:text-accent">
+                        {siteConfig.email}
+                      </a>
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mint/10 text-mint shadow-[0_0_0_1px_rgb(var(--mint-rgb)/0.3)] transition-all duration-300 group-hover:shadow-[0_0_18px_rgba(45,212,191,0.55)]">
+                      <IconPhone className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-xs uppercase tracking-wide text-paper/50">Phone</span>
+                      <a
+                        href={`tel:${siteConfig.phone.replace(/[^+\d]/g, "")}`}
+                        className="text-sm font-medium text-paper transition-colors hover:text-mint"
+                      >
+                        {siteConfig.phone}
+                      </a>
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-4">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent2/10 text-accent2 shadow-[0_0_0_1px_rgb(var(--accent2-rgb)/0.3)] transition-all duration-300 group-hover:shadow-[0_0_18px_rgba(139,92,246,0.55)]">
+                      <IconLinkedIn className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block text-xs uppercase tracking-wide text-paper/50">LinkedIn</span>
+                      <a
+                        href={siteConfig.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-paper transition-colors hover:text-accent2"
+                      >
+                        Connect on LinkedIn
+                      </a>
+                    </span>
+                  </li>
+                </ul>
+
+                <div className="relative mt-8 rounded-xl border-l-2 border-accent/50 bg-ink/40 py-3 pl-4 pr-3">
+                  <p className="text-sm italic leading-relaxed text-paper/65">
+                    &#8220;Open to AI/ML engineering opportunities, research collaboration, and ambitious product
+                    ideas.&#8221;
+                  </p>
+                </div>
+
+                <p className="relative mb-3 mt-8 text-xs uppercase tracking-wide text-paper/50">Connect</p>
+                <div className="relative flex gap-3">
+                  <a
+                    href={siteConfig.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-accent2/25 text-paper/78 transition-all hover:border-accent2 hover:text-accent2 hover:shadow-[0_0_14px_rgba(139,92,246,0.5)]"
+                  >
+                    <IconLinkedIn className="h-4 w-4" />
+                  </a>
+                  <a
+                    href={siteConfig.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="GitHub"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-accent/25 text-paper/78 transition-all hover:border-accent hover:text-accent hover:shadow-[0_0_14px_rgba(59,130,246,0.5)]"
+                  >
+                    <IconGitHub className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-hairline/10 bg-surface/[0.02] shadow-sm p-6 sm:p-8">
+                <h3 className="mb-6 text-lg font-semibold text-paper">Send a Message</h3>
+                <ContactForm email={siteConfig.email} />
+              </div>
+            </div>
+          </Container>
+        </Reveal>
+      </section>
+
     </>
   );
 }

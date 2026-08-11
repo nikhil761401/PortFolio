@@ -21,7 +21,7 @@ export default function FlowHorizontal({ steps, className = "" }: FlowHorizontal
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 font-mono text-xs text-accent">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="font-mono text-xs uppercase tracking-wider text-paper/75 sm:max-w-[8.5rem] sm:text-[13px]">
+            <span className="font-mono text-xs uppercase tracking-wider text-paper/82 sm:max-w-[8.5rem] sm:text-[13px]">
               {step}
             </span>
           </div>

@@ -7,6 +7,11 @@ export const profile = {
   headline:
     "AI/ML Engineer & Researcher | Generative AI | Building Intelligent Products & Applications",
   bio: "AI/ML Engineer and Researcher specializing in Generative AI, LLM applications, RAG, agentic AI, and applied machine learning, with experience building production-grade AI systems and applications across web and mobile platforms. Experienced in developing scalable AI systems using Python, FastAPI, cloud platforms, and modern LLM architectures, with research experience in AI-driven unsupervised learning, and generative modeling.",
+  // A shorter, hero-sized condensation of the bio above — same facts, fewer
+  // words, so the hero block stays compact. The full bio still appears in
+  // the About section; nothing here is a new claim.
+  heroSummary:
+    "AI/ML Engineer and Researcher specializing in Generative AI, LLM applications, RAG, and agentic AI — building production-grade AI systems with Python, FastAPI, and modern cloud platforms.",
 };
 
 export type ExperienceItem = {
@@ -157,8 +162,11 @@ export const skillGroups: SkillGroup[] = [
 
 export const education = {
   degree: "M.Tech. Software Engineering",
-  org: "Vellore Institute of Technology",
+  org: "Vellore Institute of Technology (VIT)",
+  location: "Vellore, Tamil Nadu, India",
   year: "2024",
+  description:
+    "Advanced study in software engineering with a focus on software development, engineering practices, and applied technology.",
 };
 
 // Broader positioning for the "What I Build" section — distinct from the
@@ -192,8 +200,55 @@ export const capabilities: Capability[] = [
 // it draws from so the two sections don't repeat each other. Terminology is
 // scoped to what the AI/ML Researcher role at VIT already establishes.
 export const researchFocus = {
-  pipeline: ["Video Understanding", "Semantic Content Extraction", "Context-Preserving Summarization"],
+  pipeline: ["AI Product Engineering", "Machine Learning", "Computer Vision"],
   description:
-    "Investigating how unsupervised representations, temporal information, sequence modeling, and attention mechanisms can identify semantically important information in long-form video.",
-  stages: ["Long-Form Video", "Representation", "Semantic Content", "Context", "Concise Summary"],
+    "Exploring the intersection of AI research and product engineering, with a focus on building intelligent systems through machine learning, deep learning, representation learning, and visual intelligence.",
+  stages: ["Intelligent Products", "Machine Learning", "Deep Learning", "Visual Intelligence", "Applied AI Research"],
+  interests: [
+    "Generative AI",
+    "Machine Learning",
+    "Deep Learning",
+    "Computer Vision",
+    "Representation Learning",
+    "AI Systems",
+    "Generative Modeling",
+    "Sequence Architectures",
+    "Attention Mechanisms",
+  ],
 };
+
+// Short factual bullets for the About section's "Key Highlights" grid — each
+// one is a direct restatement of a fact that already exists in experience,
+// projects, or education above. Nothing new is claimed here.
+export const keyHighlights: string[] = [
+  "AI/ML Researcher — Vellore Institute of Technology (2025–2026)",
+  "Python Developer — Meta Scifor Technologies (2024–2025)",
+  "M.Tech. Software Engineering — VIT (2024)",
+  "Flagship project: CrackAI — AI Live Interview Platform",
+  "Built systems spanning RAG, multi-agent orchestration, and LLM applications",
+  "Hands-on across 30+ technologies spanning AI, backend, and cloud",
+];
+
+// Recommendations, transcribed verbatim from LinkedIn — quote is kept as the
+// original three paragraphs rather than condensed, so nothing is reworded.
+export type Testimonial = {
+  name: string;
+  role: string;
+  date: string;
+  context: string;
+  quote: string[];
+};
+
+export const testimonials: Testimonial[] = [
+  {
+    name: "Farzana Rashid",
+    role: "Robotics Team lead @robochamps | Project Manager @ Meta Scifor Technologies | Pythonist | Machine Learning | Artificial intelligence | Building Innovative Software Solutions",
+    date: "September 7, 2024",
+    context: "Worked with Nikhil on the same team",
+    quote: [
+      "I had the pleasure of working closely with Nikhil during his internship, and I can confidently say he exceeded all expectations. Nikhil demonstrated an incredible ability to quickly grasp new concepts, especially in Python, Django, and other development tools. His passion for learning, combined with a strong technical skill set, allowed him to consistently deliver high-quality results throughout his internship and training period.",
+      "Nikhil is not just a developer who understands the technicalities; he brings creativity and innovation to his work, often finding the most efficient solutions to complex problems. His professionalism and commitment to projects have been exceptional, and he has contributed significantly to the success of several initiatives.",
+      "I have no doubt that Nikhil will continue to excel in his career, and I highly recommend him to any organization looking for a talented, hardworking, and motivated developer.",
+    ],
+  },
+];

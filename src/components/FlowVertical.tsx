@@ -21,7 +21,7 @@ export default function FlowVertical({ steps, className = "" }: FlowVerticalProp
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-accent/10 font-mono text-xs text-accent">
               {String(i + 1).padStart(2, "0")}
             </span>
-            <span className="font-mono text-xs uppercase tracking-wider text-paper/80">
+            <span className="font-mono text-xs uppercase tracking-wider text-paper/85">
               {step}
             </span>
           </div>
