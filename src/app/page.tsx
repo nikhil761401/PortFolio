@@ -191,7 +191,7 @@ export default function HomePage() {
                       href={siteConfig.linkedin}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-2xl bg-surface/[0.08] px-8 py-4 text-lg font-semibold text-paper transition-colors hover:bg-surface/[0.14]"
+                      className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-surface/[0.08] px-8 py-4 text-lg font-semibold text-paper transition-colors hover:bg-surface/[0.14]"
                     >
                       <IconLinkedIn className="h-5 w-5 text-accent" />
                       LinkedIn
